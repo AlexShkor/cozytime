@@ -6,8 +6,8 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/temp/prototype/data"
-	"github.com/temp/prototype/models"
+	"bitbucket.org/gavruk/prototype/data"
+	"bitbucket.org/gavruk/prototype/models"
 
 	"github.com/labstack/echo"
 )

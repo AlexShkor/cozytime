@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/temp/prototype/data"
-	"github.com/temp/prototype/routes"
+	"bitbucket.org/gavruk/prototype/data"
+	"bitbucket.org/gavruk/prototype/routes"
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"

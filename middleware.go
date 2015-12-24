@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/temp/prototype/data"
+	"bitbucket.org/gavruk/prototype/data"
 
 	"github.com/labstack/echo"
 )
