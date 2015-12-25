@@ -6,9 +6,9 @@ import (
 	"html/template"
 	"net/http"
 
-	"bitbucket.org/gavruk/prototype/data"
-	"bitbucket.org/gavruk/prototype/models"
-    "bitbucket.org/gavruk/prototype/services"
+	"bitbucket.org/AlexShkor/cozytime/data"
+	"bitbucket.org/AlexShkor/cozytime/models"
+    "bitbucket.org/AlexShkor/cozytime/services"
     
 	"github.com/labstack/echo"
 )
@@ -61,10 +61,15 @@ func (r *Router) AdminIndex(c *echo.Context) error {
 }
 
 func (r *Router) SendSms(c *echo.Context) error {
-	code, err : = twilio.SendSms()
-    if err != nill {
-        c.String(http.StatusInternalServerError, err)
+	code, err := twilio.SendCode()
+    if err != nil {
+        c.String(http.StatusInternalServerError, "Sending faild")
     }
     phone := "+375259005003"
+    setCodeToPhone(code, phone)
     return c.String(http.StatusOK, "Code sent!")
+}
+
+func setCodeToPhone(code string, phone string){
+    return;
 }

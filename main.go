@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"bitbucket.org/gavruk/prototype/data"
-	"bitbucket.org/gavruk/prototype/routes"
-	"bitbucket.org/gavruk/prototype/settings"
+	"bitbucket.org/AlexShkor/cozytime/data"
+	"bitbucket.org/AlexShkor/cozytime/routes"
+	"bitbucket.org/AlexShkor/cozytime/settings"
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
