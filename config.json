@@ -1,5 +1,8 @@
 {
 	"ConnectionString": "localhost",
 	"DatabaseName": "prototype",
-	"CollectionName": "tokens"
+	"CollectionName": "tokens",
+    "Port": "3001",
+    "TwilioSID": "AC6b01ccca77d19333e9172404867b9f92",
+    "TwilioToken": "9dce779fef4e4988a3d721f401019d51"
 }

@@ -8,7 +8,8 @@ import (
 
 	"bitbucket.org/gavruk/prototype/data"
 	"bitbucket.org/gavruk/prototype/models"
-
+    "bitbucket.org/gavruk/prototype/services"
+    
 	"github.com/labstack/echo"
 )
 
@@ -57,4 +58,13 @@ func (r *Router) AdminIndex(c *echo.Context) error {
 		return err
 	}
 	return c.HTML(http.StatusOK, html)
+}
+
+func (r *Router) SendSms(c *echo.Context) error {
+	code, err : = twilio.SendSms()
+    if err != nill {
+        c.String(http.StatusInternalServerError, err)
+    }
+    phone := "+375259005003"
+    return c.String(http.StatusOK, "Code sent!")
 }

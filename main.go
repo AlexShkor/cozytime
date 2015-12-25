@@ -6,6 +6,7 @@ import (
 
 	"bitbucket.org/gavruk/prototype/data"
 	"bitbucket.org/gavruk/prototype/routes"
+	"bitbucket.org/gavruk/prototype/settings"
 
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
@@ -17,10 +18,10 @@ var db *mgo.Database
 
 func main() {
 
-	configPath := "config.json"
-	conf, err := ReadConfig(configPath)
-	if err != nil {
-		fmt.Printf("Failed to read config: %s\n", err)
+	conf := settings.Get()
+
+	if conf == nil {
+        fmt.Println("No config found, terminating.")
 		os.Exit(-1)
 	}
 
@@ -40,16 +41,17 @@ func main() {
 
 	router := routes.NewRouter(tokens)
 	e.Get("/", router.HelloWorld)
+	e.Get("/sendsms", router.SendSms)
 	e.Post("/authorize", router.Authorize)
 
 	authorizedGroup := e.Group("/api", BearerAuth(tokens))
 	authorizedGroup.Post("/secret", func(c *echo.Context) error {
 		return c.String(200, "You are authorized!\n")
 	})
-
 	adminGroup := e.Group("/admin")
+
 	adminGroup.Static("/assets", "assets")
 	adminGroup.Get("", router.AdminIndex)
 
-	e.Run(":1323")
+	e.Run(":" + conf.Port)
 }
