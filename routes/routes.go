@@ -70,6 +70,50 @@ func (r *Router) SendSms(c *echo.Context) error {
     return c.String(http.StatusOK, "Code sent!")
 }
 
+func (r *Router) IsAuthorized(c *echo.Context) error {
+   return c.String(http.StatusOK, "Authorized!")
+}
+
+func (r *Router) Register(c *echo.Context) error {
+    decoder := json.NewDecoder(c.Request().Body)
+	var model models.Authorization
+	err := decoder.Decode(&model)
+	if err != nil {
+		return err
+	}
+
+	token, err := r.tokens.Create(model.PhoneNumber)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusForbidden)
+	}
+
+	return c.String(http.StatusOK, token)
+}
+
+func (r *Router) GetFriendsList(c *echo.Context) error {
+    decoder := json.NewDecoder(c.Request().Body)
+	var model models.Friends
+	err := decoder.Decode(&model)
+	if err != nil {
+		return err
+	}
+
+	token, err := r.tokens.FindFriends(model.PhoneNumber)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusForbidden)
+	}
+
+	return c.String(http.StatusOK, token)
+}
+
+func (r *Router) StartSession(c *echo.Context) error {
+    return c.String(http.StatusOK, "Code sent!")
+}
+
+func (r *Router) CreateSession(c *echo.Context) error {
+    return c.String(http.StatusOK, "Code sent!")
+}
+
 func setCodeToPhone(code string, phone string){
     return;
 }
