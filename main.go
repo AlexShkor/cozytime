@@ -21,7 +21,7 @@ func main() {
 	conf := settings.Get()
 
 	if conf == nil {
-        fmt.Println("No config found, terminating.")
+		fmt.Println("No config found, terminating.")
 		os.Exit(-1)
 	}
 

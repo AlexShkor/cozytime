@@ -44,7 +44,7 @@ func (r *Router) Authorize(c *echo.Context) error {
 		return err
 	}
 
-	token, err := r.tokens.Authorize(model.PhoneNumber)
+	token, err := r.tokens.Authorize(model.PhoneNumber, model.Code)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusForbidden)
 	}
@@ -98,12 +98,12 @@ func (r *Router) GetFriendsList(c *echo.Context) error {
 		return err
 	}
 
-	token, err := r.tokens.FindFriends(model.PhoneNumber)
+	friends, err := r.tokens.FindFriends(model.PhoneNumbers)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusForbidden)
 	}
 
-	return c.String(http.StatusOK, token)
+	return c.JSON(http.StatusOK, friends)
 }
 
 func (r *Router) StartSession(c *echo.Context) error {
