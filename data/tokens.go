@@ -13,6 +13,7 @@ type TokenDocument struct {
 	PhoneNumber string    `bson:"PhoneNumber"`
 	Token       string    `bson:"Token"`
     Code       string    `bson:"Code"`
+	Name       string    `bson:"Name"`
 	DateTime    time.Time `bson:"DateTime"`
 }
 
@@ -26,29 +27,43 @@ func NewTokensService(collection *mgo.Collection) *Tokens {
 	return &Tokens{collection}
 }
 
-func (t *Tokens) Authorize(id string, code string) (string, error) {
+func (t *Tokens) Authorize(phone string, code string) (*TokenDocument, error) {
 	token := GenerateAccessToken()
-    var doc TokenDocument
-    err := t.collection.Find(bson.M{"_id": id}).One(&doc)
+    doc, err := t.FindByPhone(phone)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
     if code == doc.Code {
-       updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"Token": token})
+       updateError := t.collection.Update(bson.M{"_id": doc.Id}, bson.M{"$set" : bson.M{"Token": token, "Code": nil} })
        if updateError != nil {
-		return "", err
-	}
+		return nil, err
+		}
     }
-	return token, err
+	doc.Token = token
+	return doc, err
 }
 
 func (t *Tokens) Create(phoneNumber string) (string, error) {
 	id := GenerateId()
-    code := strconv.Itoa(rand.Intn(999999))
-	doc := TokenDocument{id, phoneNumber, "", code, time.Now()}
+    code := GenerateCode()
+	doc := TokenDocument{id, phoneNumber, "", code, "", time.Now()}
 	err := t.collection.Insert(doc)
-
 	return code, err
+}
+
+func (t *Tokens) UpdateCode(id string, phoneNumber string) (string, error){
+    code := GenerateCode()
+	updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Code" : code}})
+	return code, updateError
+}
+
+func (t *Tokens) SetName(id string, name string) error{
+	updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Name" : name}})
+	return updateError
+}
+
+func GenerateCode() string {
+	return strconv.Itoa(rand.Intn(999999))
 }
 
 func (t *Tokens) IsAuthorized(token string) (string, error) {
@@ -57,21 +72,21 @@ func (t *Tokens) IsAuthorized(token string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return doc.PhoneNumber, err
+	return doc.Id, err
 }
 
 func (t *Tokens) FindByPhone(phone string) (*TokenDocument, error) {
-	var doc *TokenDocument
-	err := t.collection.Find(bson.M{"Phone": phone}).One(doc)
+	var doc TokenDocument
+	err := t.collection.Find(bson.M{"PhoneNumber": phone}).One(&doc)
 	if err != nil {
 		return nil, err
 	}
-	return doc, err
+	return &doc, err
 }
 
 func (t *Tokens) FindFriends(phones []string) ([]TokenDocument, error) {
 	var docs []TokenDocument
-	err := t.collection.Find(bson.M{"$in": bson.M{"Phone": phones}}).All(&docs)
+	err := t.collection.Find(bson.M{"$in": bson.M{"PhoneNumber": phones}}).All(&docs)
 	if err != nil {
 		return nil, err
 	}

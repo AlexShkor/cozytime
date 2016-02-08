@@ -30,12 +30,12 @@ func BearerAuth(tokens *data.Tokens) echo.HandlerFunc {
 
 		bearerToken := authParts[1]
 
-		var phoneNumber string
-		if phoneNumber, err := tokens.IsAuthorized(bearerToken); err != nil || phoneNumber == "" {
+		var userId string
+		if userId, err := tokens.IsAuthorized(bearerToken); err != nil || userId == "" {
 			return unauthorizedError
 		}
 
-		c.Set("session", phoneNumber)
+		c.Set("user", userId)
 
 		return nil
 	}

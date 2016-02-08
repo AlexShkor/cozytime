@@ -42,12 +42,11 @@ func main() {
 	router := routes.NewRouter(tokens)
 	e.Get("/", router.HelloWorld)
 	e.Get("/sendsms", router.SendSms)
-	e.Post("/authorize", router.Authorize)
-
+	e.Post("/authorize", router.Register)
+    e.Post("/submitcode", router.SubmitCode)
+	
 	authorizedGroup := e.Group("/api", BearerAuth(tokens))
-	authorizedGroup.Post("/secret", func(c *echo.Context) error {
-		return c.String(200, "You are authorized!\n")
-	})
+	authorizedGroup.Post("/setname", router.SetName)
 	adminGroup := e.Group("/admin")
 
 	adminGroup.Static("/assets", "assets")
