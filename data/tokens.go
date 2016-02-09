@@ -1,9 +1,10 @@
 package data
 
 import (
+	"math/rand"
+	"strconv"
 	"time"
-   "strconv"
-     "math/rand"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
 )
@@ -12,12 +13,10 @@ type TokenDocument struct {
 	Id          string    `bson:"_id,omitempty"`
 	PhoneNumber string    `bson:"PhoneNumber"`
 	Token       string    `bson:"Token"`
-    Code       string    `bson:"Code"`
-	Name       string    `bson:"Name"`
+	Code        string    `bson:"Code"`
+	Name        string    `bson:"Name"`
 	DateTime    time.Time `bson:"DateTime"`
 }
-
-	
 
 type Tokens struct {
 	collection *mgo.Collection
@@ -28,37 +27,38 @@ func NewTokensService(collection *mgo.Collection) *Tokens {
 }
 
 func (t *Tokens) Authorize(phone string, code string) (*TokenDocument, error) {
+
 	token := GenerateAccessToken()
-    doc, err := t.FindByPhone(phone)
+	doc, err := t.FindByPhone(phone)
 	if err != nil {
 		return nil, err
 	}
-    if code == doc.Code {
-       updateError := t.collection.Update(bson.M{"_id": doc.Id}, bson.M{"$set" : bson.M{"Token": token, "Code": nil} })
-       if updateError != nil {
-		return nil, err
+	if code == doc.Code {
+		updateError := t.collection.Update(bson.M{"_id": doc.Id}, bson.M{"$set": bson.M{"Token": token, "Code": nil}})
+		if updateError != nil {
+			return nil, err
 		}
-    }
+	}
 	doc.Token = token
 	return doc, err
 }
 
 func (t *Tokens) Create(phoneNumber string) (string, error) {
 	id := GenerateId()
-    code := GenerateCode()
+	code := GenerateCode()
 	doc := TokenDocument{id, phoneNumber, "", code, "", time.Now()}
 	err := t.collection.Insert(doc)
 	return code, err
 }
 
-func (t *Tokens) UpdateCode(id string, phoneNumber string) (string, error){
-    code := GenerateCode()
-	updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Code" : code}})
+func (t *Tokens) UpdateCode(id string, phoneNumber string) (string, error) {
+	code := GenerateCode()
+	updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Code": code}})
 	return code, updateError
 }
 
-func (t *Tokens) SetName(id string, name string) error{
-	updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Name" : name}})
+func (t *Tokens) SetName(id string, name string) error {
+	updateError := t.collection.Update(bson.M{"_id": id}, bson.M{"$set": bson.M{"Name": name}})
 	return updateError
 }
 

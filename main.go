@@ -31,7 +31,7 @@ func main() {
 	}
 	db = mongoSession.DB(conf.DatabaseName)
 	tokens := data.NewTokensService(db.C(conf.CollectionName))
-
+	games := data.NewGamesService(db.C("games"))
 	e := echo.New()
 
 	e.Hook(stripTrailingSlash)
@@ -41,12 +41,23 @@ func main() {
 
 	router := routes.NewRouter(tokens)
 	e.Get("/", router.HelloWorld)
-	e.Get("/sendsms", router.SendSms)
 	e.Post("/authorize", router.Register)
     e.Post("/submitcode", router.SubmitCode)
 	
 	authorizedGroup := e.Group("/api", BearerAuth(tokens))
 	authorizedGroup.Post("/setname", router.SetName)
+	
+	game := routes.NewGameRouter(games)
+	
+	authorizedGroup.Post("/game/start", game.StartGame)
+	authorizedGroup.Post("/game/create", game.CreateGame)
+	authorizedGroup.Post("/game/join", game.JoinGame)
+	authorizedGroup.Post("/game/stop", game.StopGame)
+	
+	authorizedGroup.Post("/secret", func(c *echo.Context) error {
+		return c.String(200, "You are authorized!\n")
+	})
+	
 	adminGroup := e.Group("/admin")
 
 	adminGroup.Static("/assets", "assets")
