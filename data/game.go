@@ -37,7 +37,7 @@ func (t *Games) Create(ownerId string, players []string, targetTime int) (*GameD
 }
 
 func (t *Games) Join(gameId string, userId string) error {
-	err := t.collection.Update(bson.M{"$and": bson.M{"_id": bson.M{"$eq": gameId}, "Invited": bson.M{"$eq": userId}, "Joined": bson.M{"$ne": userId}}}, bson.M{"$push": bson.M{"Joined": userId}})
+	err := t.collection.Update(bson.M{"$and": []bson.M{bson.M{"_id": bson.M{"$eq": gameId}}, bson.M{"Invited": bson.M{"$eq": userId}}, bson.M{"Joined": bson.M{"$ne": userId}}}}, bson.M{"$push": bson.M{"Joined": userId}})
 	return err
 }
 
@@ -56,7 +56,7 @@ func (t *Games) Stop(gameId string, userId string) error {
 }
 
 func (t *Games) Get(gameId string) (*GameDocument, error) {
-	var doc *GameDocument
-	err := t.collection.FindId(gameId).One(doc)
-	return doc, err
+	var doc GameDocument
+	err := t.collection.FindId(gameId).One(&doc)
+	return &doc, err
 }
