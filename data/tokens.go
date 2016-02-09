@@ -1,6 +1,7 @@
 package data
 
 import (
+	"fmt"
 	"math/rand"
 	"strconv"
 	"time"
@@ -34,7 +35,7 @@ func (t *Tokens) Authorize(phone string, code string) (*TokenDocument, error) {
 		return nil, err
 	}
 	if code == doc.Code {
-		updateError := t.collection.Update(bson.M{"_id": doc.Id}, bson.M{"$set": bson.M{"Token": token, "Code": nil}})
+		updateError := t.collection.Update(bson.M{"_id": doc.Id}, bson.M{"$set": bson.M{"Token": token, "Code": ""}})
 		if updateError != nil {
 			return nil, err
 		}
@@ -70,9 +71,13 @@ func (t *Tokens) IsAuthorized(token string) (string, error) {
 	var doc TokenDocument
 	err := t.collection.Find(bson.M{"Token": token}).One(&doc)
 	if err != nil {
+		fmt.Println(err)
 		return "", err
 	}
-	return doc.Id, err
+	fmt.Println(doc)
+	fmt.Println("USER ID:")
+	fmt.Println(doc.Id)
+	return doc.Id, nil
 }
 
 func (t *Tokens) FindByPhone(phone string) (*TokenDocument, error) {

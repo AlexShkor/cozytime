@@ -1,9 +1,10 @@
 package data
 
 import (
+	"time"
+
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
-	"time"
 )
 
 type GameDocument struct {
@@ -30,7 +31,7 @@ func NewGamesService(collection *mgo.Collection) *Games {
 
 func (t *Games) Create(ownerId string, players []string, targetTime int) (*GameDocument, error) {
 	id := GenerateId()
-	doc := GameDocument{id, players, []string{ownerId}, ownerId, targetTime, false, false, time.Now(), time.Time{}, time.Time{}, ""}
+	doc := GameDocument{id, append(players, ownerId), []string{ownerId}, ownerId, targetTime, false, false, time.Now(), time.Time{}, time.Time{}, ""}
 	err := t.collection.Insert(doc)
 	return &doc, err
 }
@@ -41,8 +42,7 @@ func (t *Games) Join(gameId string, userId string) error {
 }
 
 func (t *Games) Start(gameId string) (bool, error) {
-	var doc *GameDocument
-	err := t.collection.FindId(gameId).One(doc)
+	doc, err := t.Get(gameId)
 	if err == nil && doc != nil && len(doc.Joined) == len(doc.Invited) {
 		err := t.collection.Update(bson.M{"_id": gameId}, bson.M{"$set": bson.M{"Started": time.Now(), "IsStarted": true}})
 		return err == nil, err
@@ -53,4 +53,10 @@ func (t *Games) Start(gameId string) (bool, error) {
 func (t *Games) Stop(gameId string, userId string) error {
 	err := t.collection.Update(bson.M{"_id": gameId}, bson.M{"$set": bson.M{"Ended": time.Now(), "EndedBy": userId, "IsStopped": true}})
 	return err
+}
+
+func (t *Games) Get(gameId string) (*GameDocument, error) {
+	var doc *GameDocument
+	err := t.collection.FindId(gameId).One(doc)
+	return doc, err
 }

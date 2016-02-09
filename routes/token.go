@@ -74,7 +74,13 @@ func (r *Router) SetName(c *echo.Context) error {
 	}
 	var data = c.Get("user")
 	if userId, ok := data.(string); ok {
-		r.tokens.SetName(userId, model.Name)
+		fmt.Println("User:")
+		fmt.Println(userId)
+		err := r.tokens.SetName(userId, model.Name)
+		if err != nil {
+			fmt.Println(err)
+			return echo.NewHTTPError(http.StatusInternalServerError, "Can't set name")
+		}
 	}
 	return c.String(http.StatusOK, "Code sent!")
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -30,11 +31,15 @@ func BearerAuth(tokens *data.Tokens) echo.HandlerFunc {
 
 		bearerToken := authParts[1]
 
-		var userId string
-		if userId, err := tokens.IsAuthorized(bearerToken); err != nil || userId == "" {
+		fmt.Println("Token:")
+		fmt.Println(bearerToken)
+
+		userId, err := tokens.IsAuthorized(bearerToken)
+		if err != nil || userId == "" {
 			return unauthorizedError
 		}
-
+		fmt.Println("USER ID:")
+		fmt.Println(userId)
 		c.Set("user", userId)
 
 		return nil
