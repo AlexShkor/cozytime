@@ -36,7 +36,7 @@ func Get() *Config {
 	if current == nil {
 		configPath := "config.json"
 		conf, err := readConfig(configPath)
-        current = conf
+		current = conf
 		if err != nil {
 			fmt.Printf("Failed to read config: %s\n", err)
 		}

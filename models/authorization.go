@@ -1,6 +1,6 @@
 package models
 
 type Authorization struct {
-	PhoneNumber string 
-	Code string
+	PhoneNumber string
+	Code        string
 }

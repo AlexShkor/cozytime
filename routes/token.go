@@ -3,16 +3,16 @@ package routes
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
-	"fmt"
 
 	"bitbucket.org/AlexShkor/cozytime/data"
 	"bitbucket.org/AlexShkor/cozytime/models"
-    "bitbucket.org/AlexShkor/cozytime/services"
-    
-	"github.com/labstack/echo"
+	"bitbucket.org/AlexShkor/cozytime/services"
+
 	"github.com/astaxie/beego/validation"
+	"github.com/labstack/echo"
 )
 
 func getTemplate(path string) (string, error) {
@@ -66,25 +66,25 @@ func (r *Router) AdminIndex(c *echo.Context) error {
 }
 
 func (r *Router) SetName(c *echo.Context) error {
-    decoder := json.NewDecoder(c.Request().Body)
+	decoder := json.NewDecoder(c.Request().Body)
 	var model models.SetName
 	err := decoder.Decode(&model)
 	if err != nil {
 		return err
 	}
-	var data = c.Get("user");
-	if userId, ok := data.(string); ok{
+	var data = c.Get("user")
+	if userId, ok := data.(string); ok {
 		r.tokens.SetName(userId, model.Name)
 	}
 	return c.String(http.StatusOK, "Code sent!")
 }
 
 func (r *Router) IsAuthorized(c *echo.Context) error {
-   return c.String(http.StatusOK, "Authorized!")
+	return c.String(http.StatusOK, "Authorized!")
 }
 
 func (r *Router) Register(c *echo.Context) error {
-    decoder := json.NewDecoder(c.Request().Body)
+	decoder := json.NewDecoder(c.Request().Body)
 	var model models.Authorization
 	err := decoder.Decode(&model)
 	fmt.Println(model.PhoneNumber)
@@ -105,7 +105,7 @@ func (r *Router) Register(c *echo.Context) error {
 			fmt.Println(err)
 			return echo.NewHTTPError(http.StatusInternalServerError, "Can't update user info with new code.")
 		}
-	}else{
+	} else {
 		fmt.Println("User creating")
 		code, err = r.tokens.Create(model.PhoneNumber)
 		if err != nil {
@@ -121,7 +121,7 @@ func (r *Router) Register(c *echo.Context) error {
 }
 
 func (r *Router) GetFriendsList(c *echo.Context) error {
-    decoder := json.NewDecoder(c.Request().Body)
+	decoder := json.NewDecoder(c.Request().Body)
 	var model models.Friends
 	err := decoder.Decode(&model)
 	if err != nil {
