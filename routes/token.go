@@ -136,6 +136,7 @@ func (r *Router) GetFriendsList(c *echo.Context) error {
 
 	friends, err := r.tokens.FindFriends(model.PhoneNumbers)
 	if err != nil {
+		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusForbidden)
 	}
 

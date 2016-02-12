@@ -1,0 +1,1 @@
+rsync -avz -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" --progress /home/alexshkor/work/gopath/src/bitbucket.org/AlexShkor/cozytime/cozytime root@128.199.49.60:/root/www

@@ -46,6 +46,7 @@ func main() {
 
 	authorizedGroup := e.Group("/api", BearerAuth(tokens))
 	authorizedGroup.Post("/setname", router.SetName)
+	authorizedGroup.Post("/findbyphones", router.GetFriendsList)
 
 	game := routes.NewGameRouter(games)
 

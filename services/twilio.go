@@ -10,7 +10,7 @@ import (
 func SendCode(code string, phone string) error {
 	conf := settings.Get()
 	client := twilio.NewClient(conf.TwilioSID, conf.TwilioToken)
-	message, err := twilio.NewMessage(client, "+15005550006", "+"+phone, twilio.Body("Your code: "+code))
+	message, err := twilio.NewMessage(client, "+18557007895", "+"+phone, twilio.Body("CozyTime! Your code: "+code))
 
 	if err != nil {
 		fmt.Println(err)

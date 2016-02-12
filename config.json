@@ -3,6 +3,6 @@
 	"DatabaseName": "prototype",
 	"CollectionName": "tokens",
     "Port": "3001",
-    "TwilioSID": "AC6b01ccca77d19333e9172404867b9f92",
-    "TwilioToken": "9dce779fef4e4988a3d721f401019d51"
+    "TwilioSID": "AC95218b159c0777c54aed5772ed5d22a1",
+    "TwilioToken": "adb138231b7cf872a4d9fe7244e592ef"
 }

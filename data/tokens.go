@@ -91,7 +91,7 @@ func (t *Tokens) FindByPhone(phone string) (*TokenDocument, error) {
 
 func (t *Tokens) FindFriends(phones []string) ([]TokenDocument, error) {
 	var docs []TokenDocument
-	err := t.collection.Find(bson.M{"$in": bson.M{"PhoneNumber": phones}}).All(&docs)
+	err := t.collection.Find(bson.M{"PhoneNumber": bson.M{"$in": phones}}).All(&docs)
 	if err != nil {
 		return nil, err
 	}
