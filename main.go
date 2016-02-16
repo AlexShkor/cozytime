@@ -53,7 +53,11 @@ func main() {
 	authorizedGroup.Post("/game/start", game.StartGame)
 	authorizedGroup.Post("/game/create", game.CreateGame)
 	authorizedGroup.Post("/game/join", game.JoinGame)
+	authorizedGroup.Post("/game/leave", game.LeaveGame)
+	authorizedGroup.Post("/game/delete", game.DeleteGame)
 	authorizedGroup.Post("/game/stop", game.StopGame)
+	authorizedGroup.Post("/game/get", game.GetGame)
+	authorizedGroup.Post("/game/all", game.GetMyGames)
 
 	authorizedGroup.Post("/secret", func(c *echo.Context) error {
 		return c.String(200, "You are authorized!\n")
