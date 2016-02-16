@@ -50,6 +50,34 @@ func (r *GameRouter) JoinGame(c *echo.Context) error {
 	return c.JSON(http.StatusOK, userID)
 }
 
+func (r *GameRouter) LeaveGame(c *echo.Context) error {
+	fmt.Println("LEAVE GAME:")
+	userID := getUserId(c)
+	decoder := json.NewDecoder(c.Request().Body)
+	var model models.JoinGame
+	err := decoder.Decode(&model)
+	err = r.games.Leave(model.GameId, userID)
+	if err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Can't leave game")
+	}
+	return c.JSON(http.StatusOK, userID)
+}
+
+func (r *GameRouter) DeleteGame(c *echo.Context) error {
+	fmt.Println("DELETE GAME:")
+	userID := getUserId(c)
+	decoder := json.NewDecoder(c.Request().Body)
+	var model models.JoinGame
+	err := decoder.Decode(&model)
+	err = r.games.Delete(model.GameId, userID)
+	if err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Can't delete game")
+	}
+	return c.JSON(http.StatusOK, userID)
+}
+
 func (r *GameRouter) StartGame(c *echo.Context) error {
 	fmt.Println("START GAME:")
 	decoder := json.NewDecoder(c.Request().Body)
@@ -84,6 +112,28 @@ func (r *GameRouter) StopGame(c *echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't stop game")
 	}
 	return c.JSON(http.StatusOK, userID)
+}
+
+func (r *GameRouter) GetGame(c *echo.Context) error {
+	decoder := json.NewDecoder(c.Request().Body)
+	var model models.JoinGame
+	decoder.Decode(&model)
+	doc, err := r.games.Get(model.GameId)
+	if err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Can't get game")
+	}
+	return c.JSON(http.StatusOK, doc)
+}
+
+func (r *GameRouter) GetMyGames(c *echo.Context) error {
+	userID := getUserId(c)
+	docs, err := r.games.GetAllForUser(userID)
+	if err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Can't get game")
+	}
+	return c.JSON(http.StatusOK, docs)
 }
 
 func getUserId(c *echo.Context) string {
