@@ -48,7 +48,7 @@ func main() {
 	authorizedGroup.Post("/setname", router.SetName)
 	authorizedGroup.Post("/findbyphones", router.GetFriendsList)
 
-	game := routes.NewGameRouter(games)
+	game := routes.NewGameRouter(games, tokens)
 
 	authorizedGroup.Post("/game/start", game.StartGame)
 	authorizedGroup.Post("/game/create", game.CreateGame)

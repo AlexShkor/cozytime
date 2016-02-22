@@ -11,11 +11,12 @@ import (
 )
 
 type GameRouter struct {
-	games *data.Games
+	games  *data.Games
+	tokens *data.Tokens
 }
 
-func NewGameRouter(games *data.Games) *GameRouter {
-	return &GameRouter{games}
+func NewGameRouter(games *data.Games, tokens *data.Tokens) *GameRouter {
+	return &GameRouter{games, tokens}
 }
 
 func (r *GameRouter) CreateGame(c *echo.Context) error {

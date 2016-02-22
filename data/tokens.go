@@ -98,6 +98,15 @@ func (t *Tokens) FindFriends(phones []string) ([]TokenDocument, error) {
 	return docs, err
 }
 
+func (t *Tokens) GetUsers(ids []string) ([]TokenDocument, error) {
+	var docs []TokenDocument
+	err := t.collection.Find(bson.M{"_id": bson.M{"$in": ids}}).All(&docs)
+	if err != nil {
+		return nil, err
+	}
+	return docs, err
+}
+
 func (t *Tokens) GetAll() ([]TokenDocument, error) {
 	var docs []TokenDocument
 	err := t.collection.Find(bson.M{}).All(&docs)
