@@ -28,17 +28,37 @@ func main() {
 		os.Exit(-1)
 	}
 
+
+	mongoSession, err := mgo.Dial(conf.ConnectionString)
+	if err != nil {
+		panic(err)
+	}
+	db = mongoSession.DB(conf.DatabaseName)
+	tokens := data.NewTokensService(db.C(conf.CollectionName))
+	games := data.NewGamesService(db.C("games"))
+    
+    
 	server, err := socketio.NewServer(nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 	server.On("connection", func(so socketio.Socket) {
 		log.Println("on connection")
-		so.Join("chat")
-		so.On("chat message", func(msg string) {
-			log.Println("emit:", so.Emit("chat message", msg))
-			so.BroadcastTo("chat", "chat message", msg)
-		})
+        req := so.Request()
+        token, ckerr := req.Cookie("token")
+        if ckerr != nil {
+		  log.Fatal(ckerr)
+	    }
+        userId, authError := tokens.IsAuthorized(token.Value) 
+        if authError != nil {
+		  log.Fatal(authError)
+          return
+	    }
+		so.Join(userId)
+		//so.On("chat message", func(msg string) {
+		//	log.Println("emit:", so.Emit("chat message", msg))
+		//	so.BroadcastTo("chat", "chat message", msg)
+		//})
 		so.On("disconnection", func() {
 			log.Println("on disconnect")
 		})
@@ -48,14 +68,7 @@ func main() {
 	})
 
 	http.Handle("/socket.io/", server)
-
-	mongoSession, err := mgo.Dial(conf.ConnectionString)
-	if err != nil {
-		panic(err)
-	}
-	db = mongoSession.DB(conf.DatabaseName)
-	tokens := data.NewTokensService(db.C(conf.CollectionName))
-	games := data.NewGamesService(db.C("games"))
+    
 	e := echo.New()
 
 	e.Hook(stripTrailingSlash)
@@ -72,7 +85,7 @@ func main() {
 	authorizedGroup.Post("/setname", router.SetName)
 	authorizedGroup.Post("/findbyphones", router.GetFriendsList)
 
-	game := routes.NewGameRouter(games, tokens)
+	game := routes.NewGameRouter(games, tokens, server)
 
 	authorizedGroup.Post("/game/start", game.StartGame)
 	authorizedGroup.Post("/game/create", game.CreateGame)

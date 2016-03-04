@@ -89,6 +89,16 @@ func (t *Tokens) FindByPhone(phone string) (*TokenDocument, error) {
 	return &doc, err
 }
 
+
+func (t *Tokens) FindByToken(token string) (*TokenDocument, error) {
+	var doc TokenDocument
+	err := t.collection.Find(bson.M{"Token": token}).One(&doc)
+	if err != nil {
+		return nil, err
+	}
+	return &doc, err
+}
+
 func (t *Tokens) FindFriends(phones []string) ([]TokenDocument, error) {
 	var docs []TokenDocument
 	err := t.collection.Find(bson.M{"PhoneNumber": bson.M{"$in": phones}}).All(&docs)
@@ -114,4 +124,10 @@ func (t *Tokens) GetAll() ([]TokenDocument, error) {
 		return nil, err
 	}
 	return docs, nil
+}
+
+func (t *Tokens) Get(userId string) (*TokenDocument, error) {
+	var doc TokenDocument
+	err := t.collection.FindId(userId).One(&doc)
+	return &doc, err
 }

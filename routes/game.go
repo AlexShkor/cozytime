@@ -8,15 +8,17 @@ import (
 	"bitbucket.org/AlexShkor/cozytime/data"
 	"bitbucket.org/AlexShkor/cozytime/models"
 	"github.com/labstack/echo"
+     "github.com/googollee/go-socket.io"
 )
 
 type GameRouter struct {
 	games  *data.Games
 	tokens *data.Tokens
+    sockets *socketio.Server
 }
 
-func NewGameRouter(games *data.Games, tokens *data.Tokens) *GameRouter {
-	return &GameRouter{games, tokens}
+func NewGameRouter(games *data.Games, tokens *data.Tokens, sockets *socketio.Server) *GameRouter {
+	return &GameRouter{games, tokens, sockets}
 }
 
 func (r *GameRouter) CreateGame(c *echo.Context) error {
@@ -34,6 +36,9 @@ func (r *GameRouter) CreateGame(c *echo.Context) error {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't create game")
 	}
+    for _, userId := range model.Players {
+        r.sockets.BroadcastTo(userId, "user-invited", doc)
+    }
 	return c.JSON(http.StatusOK, models.GameResponse{doc.Id})
 }
 
@@ -48,7 +53,17 @@ func (r *GameRouter) JoinGame(c *echo.Context) error {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't join game")
 	}
-	return c.JSON(http.StatusOK, userID)
+    game, err := r.games.Get(model.GameId)
+    users := game.Invited
+    userDoc, err := r.tokens.Get(userID)
+    if err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Can't join game")
+	}
+    for _,id := range users {
+        r.sockets.BroadcastTo(id, "user-joined", userDoc)
+    }
+	return c.JSON(http.StatusOK, game)
 }
 
 func (r *GameRouter) LeaveGame(c *echo.Context) error {
@@ -62,6 +77,11 @@ func (r *GameRouter) LeaveGame(c *echo.Context) error {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't leave game")
 	}
+    doc, err := r.games.Get(model.GameId)
+    userDoc, err := r.tokens.Get(userID)
+    for _, userId := range doc.Invited {
+        r.sockets.BroadcastTo(userId, "user-left", userDoc)
+    }
 	return c.JSON(http.StatusOK, userID)
 }
 
@@ -76,6 +96,10 @@ func (r *GameRouter) DeleteGame(c *echo.Context) error {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't delete game")
 	}
+    doc, err := r.games.Get(model.GameId)
+    for _, userId := range doc.Invited {
+        r.sockets.BroadcastTo(userId, "game-finished", doc)
+    }
 	return c.JSON(http.StatusOK, userID)
 }
 
@@ -94,6 +118,10 @@ func (r *GameRouter) StartGame(c *echo.Context) error {
 	}
 	fmt.Println("START STARTED: ")
 	fmt.Print(started)
+    doc, err := r.games.Get(model.GameId)
+    for _, userId := range doc.Invited {
+        r.sockets.BroadcastTo(userId, "game-started", doc)
+    }
 	return c.JSON(http.StatusOK, started)
 }
 
@@ -112,6 +140,10 @@ func (r *GameRouter) StopGame(c *echo.Context) error {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't stop game")
 	}
+    doc, err := r.games.Get(model.GameId)
+    for _, userId := range doc.Invited {
+        r.sockets.BroadcastTo(userId, "game-finished", doc)
+    }
 	return c.JSON(http.StatusOK, userID)
 }
 
