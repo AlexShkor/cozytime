@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 
 	"bitbucket.org/AlexShkor/cozytime/data"
 	"bitbucket.org/AlexShkor/cozytime/routes"
 	"bitbucket.org/AlexShkor/cozytime/settings"
 
+	"github.com/googollee/go-socket.io"
 	"github.com/labstack/echo"
 	mw "github.com/labstack/echo/middleware"
 
@@ -24,6 +27,27 @@ func main() {
 		fmt.Println("No config found, terminating.")
 		os.Exit(-1)
 	}
+
+	server, err := socketio.NewServer(nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	server.On("connection", func(so socketio.Socket) {
+		log.Println("on connection")
+		so.Join("chat")
+		so.On("chat message", func(msg string) {
+			log.Println("emit:", so.Emit("chat message", msg))
+			so.BroadcastTo("chat", "chat message", msg)
+		})
+		so.On("disconnection", func() {
+			log.Println("on disconnect")
+		})
+	})
+	server.On("error", func(so socketio.Socket, err error) {
+		log.Println("error:", err)
+	})
+
+	http.Handle("/socket.io/", server)
 
 	mongoSession, err := mgo.Dial(conf.ConnectionString)
 	if err != nil {
