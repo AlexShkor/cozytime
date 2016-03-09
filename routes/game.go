@@ -28,17 +28,14 @@ func (r *GameRouter) CreateGame(c *echo.Context) error {
 	err := decoder.Decode(&model)
 	fmt.Println("Model:")
 	fmt.Println(model)
-	if err != nil {
-		return err
-	}
 	doc, err := r.games.Create(userID, model.Players, model.TargetTime)
-	if err != nil {
-		fmt.Println(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "Can't create game")
-	}
     for _, userId := range model.Players {
         r.sockets.BroadcastTo(userId, "user-invited", doc)
     }
+    if err != nil {
+		fmt.Println(err)
+		return echo.NewHTTPError(http.StatusInternalServerError, "Can't create game")
+	}
 	return c.JSON(http.StatusOK, models.GameResponse{doc.Id})
 }
 
@@ -49,21 +46,18 @@ func (r *GameRouter) JoinGame(c *echo.Context) error {
 	var model models.JoinGame
 	err := decoder.Decode(&model)
 	err = r.games.Join(model.GameId, userID)
+    game, err := r.games.Get(model.GameId)
+    users := game.Invited
+    userDoc, err := r.tokens.Get(userID)
+    for _,id := range users {
+        r.sockets.BroadcastTo(id, "user-joined", userDoc)
+    }
+    json, err := buildGameDto(r, game)
 	if err != nil {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't join game")
 	}
-    game, err := r.games.Get(model.GameId)
-    users := game.Invited
-    userDoc, err := r.tokens.Get(userID)
-    if err != nil {
-		fmt.Println(err)
-		return echo.NewHTTPError(http.StatusInternalServerError, "Can't join game")
-	}
-    for _,id := range users {
-        r.sockets.BroadcastTo(id, "user-joined", userDoc)
-    }
-	return c.JSON(http.StatusOK, game)
+	return c.JSON(http.StatusOK, json)
 }
 
 func (r *GameRouter) LeaveGame(c *echo.Context) error {
@@ -152,11 +146,12 @@ func (r *GameRouter) GetGame(c *echo.Context) error {
 	var model models.JoinGame
 	decoder.Decode(&model)
 	doc, err := r.games.Get(model.GameId)
-	if err != nil {
+    json, err := buildGameDto(r, doc)
+    if err != nil {
 		fmt.Println(err)
 		return echo.NewHTTPError(http.StatusInternalServerError, "Can't get game")
 	}
-	return c.JSON(http.StatusOK, doc)
+	return c.JSON(http.StatusOK, json)
 }
 
 func (r *GameRouter) GetMyGames(c *echo.Context) error {
@@ -175,4 +170,16 @@ func getUserId(c *echo.Context) string {
 		return userId
 	}
 	return ""
+}
+
+func buildGameDto(r *GameRouter, doc *data.GameDocument) (*models.GameDto, error) {
+    userDocs, err := r.tokens.GetUsers(doc.Invited)
+    if err != nil {
+		return nil, err
+	}
+    users:= make([]models.UserDto, len(userDocs))
+    for i, user := range userDocs {
+        users[i] = models.UserDto{user.Id, user.PhoneNumber, user.Name}
+    }
+    return &models.GameDto{doc.Id, doc.Invited, doc.Joined, doc.Owner, doc.TargetTime, doc.IsStarted, doc.IsStopped, doc.Created, doc.Started, doc.Ended, doc.EndedBy, doc.Deleted, doc.IsDeleted, nil} , nil
 }
