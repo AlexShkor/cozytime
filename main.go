@@ -42,31 +42,32 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+    server.SetMaxConnection(1000)
 	server.On("connection", func(so socketio.Socket) {
 		log.Println("on connection")
-        req := so.Request()
-        token, ckerr := req.Cookie("token")
-        if ckerr != nil {
-		  log.Fatal(ckerr)
-	    }
-        userId, authError := tokens.IsAuthorized(token.Value) 
-        if authError != nil {
-		  log.Fatal(authError)
-          return
-	    }
-		so.Join(userId)
-		//so.On("chat message", func(msg string) {
-		//	log.Println("emit:", so.Emit("chat message", msg))
-		//	so.BroadcastTo("chat", "chat message", msg)
-		//})
-		so.On("disconnection", func() {
-			log.Println("on disconnect")
-		})
+       
+       so.On("test", func (msg string)  {
+			log.Println("emit:", so.Emit("test", msg))
+       })
+       
+		so.On("userconnect", func(token string) {
+            userId, authError := tokens.IsAuthorized(token) 
+            if authError != nil {
+            log.Fatal(authError)
+            return
+            }
+            so.Join(userId)
+            })
+            
+            so.On("disconnection", func() {
+                log.Println("on disconnect")
+            })
 	})
 	server.On("error", func(so socketio.Socket, err error) {
 		log.Println("error:", err)
 	})
 
+    
 	http.Handle("/socket.io/", server)
     
 	e := echo.New()
@@ -80,6 +81,8 @@ func main() {
 	e.Get("/", router.HelloWorld)
 	e.Post("/authorize", router.Register)
 	e.Post("/submitcode", router.SubmitCode)
+    e.Post("/log", router.Log)
+
 
 	authorizedGroup := e.Group("/api", BearerAuth(tokens))
 	authorizedGroup.Post("/setname", router.SetName)
@@ -105,5 +108,7 @@ func main() {
 	adminGroup.Static("/assets", "assets")
 	adminGroup.Get("", router.AdminIndex)
 
-	e.Run(":" + conf.Port)
+    http.Handle("/", e)
+    
+    log.Fatal(http.ListenAndServe(":" + conf.Port, nil))
 }

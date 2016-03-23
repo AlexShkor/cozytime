@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+    "time"
 
 	"bitbucket.org/AlexShkor/cozytime/data"
 	"bitbucket.org/AlexShkor/cozytime/models"
@@ -36,6 +37,18 @@ func NewRouter(tokens *data.Tokens) *Router {
 func (r *Router) HelloWorld(c *echo.Context) error {
 	docs, _ := r.tokens.GetAll()
 	return c.JSON(http.StatusOK, docs)
+}
+
+func (r *Router) Log(c *echo.Context) error {
+    decoder := json.NewDecoder(c.Request().Body)
+    var model data.LogDocument
+	err := decoder.Decode(&model)
+    model.ServerDateTime = time.Time{}
+    model.User = getUserId(c)
+	if err != nil {
+		return err
+	}
+    return c.JSON(http.StatusOK, model)
 }
 
 func (r *Router) SubmitCode(c *echo.Context) error {
